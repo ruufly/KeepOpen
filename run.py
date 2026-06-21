@@ -1,7 +1,15 @@
 import winreg
 import os, sys
 import json
-import subprocess
+import psutil
+from plyer import notification
+
+
+def is_process_running(process_name):
+    for proc in psutil.process_iter(["name"]):
+        if proc.info["name"] == process_name:
+            return True
+    return False
 
 
 def add_to_startup(name, file_path=""):
@@ -32,8 +40,8 @@ def remove_from_startup(name):
 
 
 def getpath():
-    return os.path.realpath(sys.executable)
-    # return os.path.abspath(__file__)
+    # return os.path.realpath(sys.executable)
+    return os.path.abspath(__file__)
 
 
 def getdir(dir):
@@ -63,10 +71,18 @@ if setting["Start"]:
 else:
     remove_from_startup("KeepOpenStartup")
 
-print(setting)
-print(getdir("main_uac.exe"))
 
-if setting["Administer"]:
-    os.system(getdir("main_uac.exe"))
+if is_process_running("keepopen_main_uac.exe") or is_process_running(
+    "keepopen_main.exe"
+):
+    notification.notify(
+        title="KeepOpen",
+        message="KeepOpen正在运行，请勿重复打开！",
+        app_name="KeepOpen",
+        app_icon=getdir("data\\icon.ico"),
+    )
 else:
-    os.system(getdir("main.exe"))
+    if setting["Administer"]:
+        os.system(getdir("keepopen_main_uac.exe"))
+    else:
+        os.system(getdir("keepopen_main.exe"))
