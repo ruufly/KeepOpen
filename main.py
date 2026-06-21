@@ -15,8 +15,8 @@ import logging
 
 
 def getpath():
-    # return os.path.dirname(os.path.realpath(sys.executable))
-    return os.path.dirname(os.path.abspath(__file__))
+    return os.path.dirname(os.path.realpath(sys.executable))
+    # return os.path.dirname(os.path.abspath(__file__))
 
 
 def getdir(dir):
