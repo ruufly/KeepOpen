@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 import os.path
 import pystray
 from pystray import MenuItem as item
@@ -14,15 +14,12 @@ import shutil
 import logging
 
 
-
 def getpath():
-    # return os.path.dirname(os.path.realpath(sys.executable))
-    return os.path.dirname(os.path.abspath(__file__))
+    return os.path.dirname(os.path.realpath(sys.executable))
+    # return os.path.dirname(os.path.abspath(__file__))
+
 
 def getdir(dir):
-    # file: os.path.dirname(os.path.abspath(__file__))
-    # complete: os.path.dirname(os.path.realpath(sys.executable))
-    # return os.path.join(os.path.dirname(os.path.realpath(sys.executable)), dir)
     return os.path.join(getpath(), dir)
 
 
@@ -31,6 +28,49 @@ def getpartition():
     for partition in psutil.disk_partitions():
         partitions.append(partition.mountpoint)
     return tuple(partitions)
+
+
+def getsetting():
+    if not os.path.exists(getdir("data\\setting.json")):
+        with open(
+            getdir("data\\setting.json"),
+            "w",
+            encoding="utf-8",
+        ) as f:
+            setting = {
+                "MountPoints": [],
+                "Filename": ".keepopen",
+                "Waiting": 30,
+                "Start": True,
+                "Administer": False,
+            }
+            json.dump(setting, f)
+
+    with open(getdir("data\\setting.json"), "r", encoding="utf-8") as f:
+        setting = json.load(f)
+
+    if not (
+        "MountPoints" in setting
+        and "Filename" in setting
+        and "Waiting" in setting
+        and "Start" in setting
+        and "Administer" in setting
+    ):
+        with open(
+            getdir("data\\setting.json"),
+            "w",
+            encoding="utf-8",
+        ) as f:
+            setting = {
+                "MountPoints": [],
+                "Filename": ".keepopen",
+                "Waiting": 30,
+                "Start": True,
+                "Administer": False,
+            }
+            json.dump(setting, f)
+
+    return setting
 
 
 class Service(object):
@@ -54,24 +94,7 @@ class Service(object):
         # while os.path.exists(getdir("data\\running.tmp")):
         #     pass
 
-        if not os.path.exists(getdir("data\\setting.json")):
-            self.logger.warning("cannot read the setting file")
-            with open(
-                getdir("data\\setting.json"),
-                "w",
-                encoding="utf-8",
-            ) as f:
-                self.setting = {
-                    "MountPoints": [],
-                    "Filename": ".keepopen",
-                    "Waiting": 30,
-                    "Start": True,
-                    "Administer": False,
-                }
-                json.dump(f, self.setting)
-
-        with open(getdir("data\\setting.json"), "r", encoding="utf-8") as f:
-            self.setting = json.load(f)
+        self.setting = getsetting()
 
         self.MountPoints = self.setting["MountPoints"]
         self.Filename = self.setting["Filename"]
@@ -87,6 +110,7 @@ class Service(object):
         self.flush()
         self.logger.info(f"start at: {self.dirpath}")
         while serviceRun:
+            self.flush()
             displayFile = os.path.join(self.dirpath, self.Filename)
             with open(displayFile, "w") as f:
                 pass
@@ -115,23 +139,7 @@ main = threading.Thread(target=service.Run)
 
 class KeepOpen:
     def __init__(self):
-        if not os.path.exists(getdir("data\\setting.json")):
-            with open(
-                getdir("data\\setting.json"),
-                "w",
-                encoding="utf-8",
-            ) as f:
-                self.setting = {
-                    "MountPoints": [],
-                    "Filename": ".keepopen",
-                    "Waiting": 30,
-                    "Start": True,
-                    "Administer": False,
-                }
-                json.dump(f, self.setting)
-
-        with open(getdir("data\\setting.json"), "r", encoding="utf-8") as f:
-            self.setting = json.load(f)
+        self.setting = getsetting()
         self.root = tk.Tk()
         self.root.withdraw()
         self.root.title("KeepOpen 设置")
@@ -143,7 +151,9 @@ class KeepOpen:
         global symbol_unchecked
         symbol_unchecked = ImageTk.PhotoImage(
             Image.open(
-                getdir(os.path.join("data", "MaterialSymbolsLightCheckBoxOutlineBlank.png"))
+                getdir(
+                    os.path.join("data", "MaterialSymbolsLightCheckBoxOutlineBlank.png")
+                )
             ).resize((20, 20))
         )
 
@@ -163,9 +173,13 @@ class KeepOpen:
         self.TreeList = ttk.Treeview(self.TreeFrame, columns=["mountpoint"])
         self.TreeList.tag_configure("fggrey", foreground="grey")
 
-        self.yScroll = ttk.Scrollbar(self.TreeFrame, orient=tk.VERTICAL, command=self.TreeList.yview)
+        self.yScroll = ttk.Scrollbar(
+            self.TreeFrame, orient=tk.VERTICAL, command=self.TreeList.yview
+        )
         self.yScroll.pack(side=tk.RIGHT, fill=tk.Y)
-        self.xScroll = ttk.Scrollbar(self.TreeFrame, orient=tk.HORIZONTAL, command=self.TreeList.xview)
+        self.xScroll = ttk.Scrollbar(
+            self.TreeFrame, orient=tk.HORIZONTAL, command=self.TreeList.xview
+        )
         self.xScroll.pack(side=tk.BOTTOM, fill=tk.X)
 
         self.TreeList.config(yscrollcommand=self.yScroll.set)
@@ -225,11 +239,13 @@ class KeepOpen:
         self.C1.place(relx=0.05, rely=0.65)
         self.C2.place(relx=0.5, rely=0.65)
 
-        self.ButtonOkay = ttk.Button(self.root, text="确定")
-        self.ButtonCancel = ttk.Button(self.root, text="取消")
-        self.ButtonAbout = ttk.Button(self.root, text="关于")
+        self.ButtonOkay = ttk.Button(self.root, text="确定", command=self._buttonOkay)
+        self.ButtonCan = ttk.Button(self.root, text="取消", command=self._buttonCancel)
+        self.ButtonAbout = ttk.Button(self.root, text="关于", command=self._buttonAbout)
+        self.ButtonDel = ttk.Button(self.root, text="清理缓存", command=self._buttonDel)
+        self.ButtonDel.place(relx=0.2, rely=0.85)
         self.ButtonAbout.place(relx=0.4, rely=0.85)
-        self.ButtonCancel.place(relx=0.6, rely=0.85)
+        self.ButtonCan.place(relx=0.6, rely=0.85)
         self.ButtonOkay.place(relx=0.8, rely=0.85)
 
         self.root.protocol("WM_DELETE_WINDOW", self.hide_to_tray)
@@ -238,9 +254,90 @@ class KeepOpen:
 
         self.create_tray_icon()
 
+    def _buttonOkay(self, *args):
+        self.setting["Start"] = bool(self.CheckVar1.get())
+        self.setting["Administer"] = bool(self.CheckVar2.get())
+        try:
+            self.setting["Waiting"] = int(self.current_value.get())
+        except Exception as e:
+            service.log("error", f"failed to change the setting: {e}")
+            messagebox.showerror("KeepOpen", f"设置失败：{e}")
+            return
+        self.setting["MountPoints"] = []
+        for i in self.TreeList.get_children():
+            if self.TreeList.item(i, "tag")[0] == "checked":
+                self.setting["MountPoints"].append(self.TreeList.item(i, "values")[0])
+        messagebox.showinfo("KeepOpen", "设置成功！部分设置项可能需要重启以应用")
+        self.root.withdraw()
+        service.log("info", "the setting is confirmed")
+        service.setting = self.setting
+        with open(
+            getdir("data\\setting.json"),
+            "w",
+            encoding="utf-8",
+        ) as f:
+            json.dump(self.setting, f)
+        service.log("info", "the setting is saved")
+
+    def _buttonCancel(self, *args):
+        self.root.withdraw()
+        service.log("info", "the setting is canceled")
+
+    def _buttonAbout(self, *args):
+        about = tk.Toplevel(self.root)
+        about.title("关于")
+        about.geometry("800x315")
+        about.resizable(width=0, height=0)
+        about.configure(background="#fceedb")
+
+        global image_ban
+        image_ban = ImageTk.PhotoImage(
+            Image.open(
+                getdir(
+                    os.path.join(
+                        "data",
+                        "image.png",
+                    )
+                )
+            )
+        )
+        tk.Label(about, image=image_ban, bg="#fceedb").place(x=0, y=0)
+        tk.Label(about, anchor="w", justify="left", text="""KeepOpen v1.0
+一款维持某一盘符的活动状态以防止移动硬盘自动休眠的小工具
+
+Copyright 2026 distjr_
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+git: https://github.com/ruufly/KeepOpen.git""", bg="#fceedb").place(x=300,y=0)
+
+    def _buttonDel(self, *args):
+        service.log("info", "deleting the caches")
+        with open(getdir("service.log"), "w") as f:
+            pass
+        messagebox.showinfo("KeepOpen", "清理成功！")
+        service.log("info", "delete the caches: done")
+
     def on_checkbox_changed(self, *args):
         item_id = self.TreeList.focus()
+        now_get = self.TreeList.item(item_id, "text")
         checkbox_state = self.TreeList.item(item_id, "tag")
+        if (
+            os.path.samefile(now_get, os.path.join(os.environ.get("SystemDrive"), "/"))
+            and (checkbox_state[0] == "unchecked")
+            and (not bool(self.CheckVar2.get()))
+        ):
+            messagebox.showinfo("KeepOpen", "该盘符为系统盘，建议同时勾选管理员模式！")
         if checkbox_state[0] == "checked":
             self.TreeList.item(item_id, tags=("unchecked",))
         else:
@@ -257,6 +354,7 @@ class KeepOpen:
         self.tray_icon = pystray.Icon("hidden_app", image, "KeepOpen", menu)
 
     def show_app(self, icon=None, item=None):
+        service.log("info", "the setting window is opened")
         self.root.deiconify()
         self.root.lift()
         self.root.focus_force()
