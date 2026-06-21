@@ -1,8 +1,9 @@
 {
     "MountPoints": [
+        "D:\\"
     ],
     "Filename": ".keepopen",
-    "Waiting": 30,
+    "Waiting": 3,
     "Start": true,
-    "Administer": false
+    "Administer": true
 }

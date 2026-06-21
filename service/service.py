@@ -1,7 +1,3 @@
-# encoding=utf-8
-import win32serviceutil
-import win32service
-import win32event
 import os
 import logging
 import shutil
@@ -9,22 +5,17 @@ import inspect
 import json
 
 
-class Service(win32serviceutil.ServiceFramework):
-    _svc_name_ = "KeepOpen"
-    _svc_display_name_ = "KeepOpen Service"
-    _svc_description_ = "维持某一盘符的活动状态以防止移动硬盘自动休眠"
-
-    def __init__(self, args):
-        win32serviceutil.ServiceFramework.__init__(self, args)
-        self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
+class Service():
+    def __init__(self):
         self.logger = self._getLogger()
         self.run = True
         self._flush()
 
     def _flush(self):
-        self.dirpath = os.path.abspath(
-            os.path.dirname(inspect.getfile(inspect.currentframe()))
-        )
+        # self.dirpath = os.path.abspath(
+        #     os.path.dirname(inspect.getfile(inspect.currentframe()))
+        # )
+        self.dirpath = os.path.dirname(os.path.abspath(__file__))
         displayFile = os.path.join(self.dirpath, "..\\data\\running.tmp")
         with open(displayFile, "w") as f:
             pass
@@ -94,13 +85,4 @@ class Service(win32serviceutil.ServiceFramework):
             self.logger.info("waiting for the next cycle...")
             time.sleep(self.Waiting)
 
-    def SvcStop(self):
-        self.logger.info("service is stop")
-        self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
-        win32event.SetEvent(self.hWaitStop)
-        self.run = False
-
-
-if __name__ == "__main__":
-    # Service().SvcDoRun()
-    win32serviceutil.HandleCommandLine(Service)
+Service().SvcDoRun()

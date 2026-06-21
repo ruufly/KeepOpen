@@ -1,4 +1,4 @@
 *.log
-service/test.py
+service/*
 window.py
 test.py
