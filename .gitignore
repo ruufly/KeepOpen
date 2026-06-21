@@ -9,3 +9,4 @@ dist/
 *.spec
 *.exe
 icon.ico
+version.txt

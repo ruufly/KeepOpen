@@ -1,7 +1,7 @@
 import winreg
 import os, sys
 import json
-from goto import with_goto
+import subprocess
 
 
 def add_to_startup(name, file_path=""):
@@ -31,11 +31,18 @@ def remove_from_startup(name):
     winreg.CloseKey(key)
 
 
-dirpath = os.path.dirname(os.path.abspath(__file__))
+def getpath():
+    return os.path.realpath(sys.executable)
+    # return os.path.abspath(__file__)
 
-if not os.path.exists(os.path.join(dirpath, "data\\setting.json")):
+
+def getdir(dir):
+    return os.path.join(os.path.dirname(getpath()), dir)
+
+
+if not os.path.exists(getdir("data\\setting.json")):
     with open(
-        os.path.join(dirpath, "data\\setting.json"),
+        getdir("data\\setting.json"),
         "w",
         encoding="utf-8",
     ) as f:
@@ -48,17 +55,18 @@ if not os.path.exists(os.path.join(dirpath, "data\\setting.json")):
         }
         json.dump(f, setting)
 
-with open(os.path.join(dirpath, "data\\setting.json"), "r", encoding="utf-8") as f:
+with open(getdir("data\\setting.json"), "r", encoding="utf-8") as f:
     setting = json.load(f)
 
 if setting["Start"]:
-    add_to_startup("KeepOpenStartup", os.path.abspath(__file__))
+    add_to_startup("KeepOpenStartup", getpath())
 else:
     remove_from_startup("KeepOpenStartup")
 
-@with_goto
-def run():
-    if setting["Administer"]:
-        import main
-    else:
-        import main
+print(setting)
+print(getdir("main_uac.exe"))
+
+if setting["Administer"]:
+    os.system(getdir("main_uac.exe"))
+else:
+    os.system(getdir("main.exe"))
