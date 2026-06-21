@@ -15,8 +15,8 @@ import logging
 
 
 def getpath():
-    return os.path.dirname(os.path.realpath(sys.executable))
-    # return os.path.dirname(os.path.abspath(__file__))
+    # return os.path.dirname(os.path.realpath(sys.executable))
+    return os.path.dirname(os.path.abspath(__file__))
 
 
 def getdir(dir):
@@ -302,7 +302,11 @@ class KeepOpen:
             )
         )
         tk.Label(about, image=image_ban, bg="#fceedb").place(x=0, y=0)
-        tk.Label(about, anchor="w", justify="left", text="""KeepOpen v1.0
+        tk.Label(
+            about,
+            anchor="w",
+            justify="left",
+            text="""KeepOpen v1.0
 一款维持某一盘符的活动状态以防止移动硬盘自动休眠的小工具
 
 Copyright 2026 distjr_
@@ -319,7 +323,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-git: https://github.com/ruufly/KeepOpen.git""", bg="#fceedb").place(x=300,y=0)
+git: https://github.com/ruufly/KeepOpen.git""",
+            bg="#fceedb",
+        ).place(x=300, y=0)
 
     def _buttonDel(self, *args):
         service.log("info", "deleting the caches")
