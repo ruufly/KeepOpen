@@ -189,14 +189,7 @@ class KeepOpen:
 
         self.TreeList.heading("mountpoint", text="盘符挂载点")
 
-        self.seqs, self.rs = [], 0
-        for i in getpartition():
-            self.seqs.append(self.TreeList.insert("", "end", text=i, values=i))
-            self.TreeList.item(
-                self.seqs[self.rs],
-                tags=("checked" if i in self.setting["MountPoints"] else "unchecked",),
-            )
-            self.rs += 1
+        self.flushTree()
 
         self.TreeList.bind("<<TreeviewSelect>>", self.on_checkbox_changed)
 
@@ -253,6 +246,18 @@ class KeepOpen:
         service.log("info", "finished to initialize the window")
 
         self.create_tray_icon()
+
+    def flushTree(self):
+        for item in self.TreeList.get_children():
+            self.TreeList.delete(item)
+        self.seqs, self.rs = [], 0
+        for i in getpartition():
+            self.seqs.append(self.TreeList.insert("", "end", text=i, values=i))
+            self.TreeList.item(
+                self.seqs[self.rs],
+                tags=("checked" if i in self.setting["MountPoints"] else "unchecked",),
+            )
+            self.rs += 1
 
     def _buttonOkay(self, *args):
         self.setting["Start"] = bool(self.CheckVar1.get())
@@ -338,6 +343,10 @@ git: https://github.com/ruufly/KeepOpen.git""",
         item_id = self.TreeList.focus()
         now_get = self.TreeList.item(item_id, "text")
         checkbox_state = self.TreeList.item(item_id, "tag")
+        try:
+            os.path.samefile(now_get, os.path.join(os.environ.get("SystemDrive"), "/"))
+        except Exception:
+            return
         if (
             os.path.samefile(now_get, os.path.join(os.environ.get("SystemDrive"), "/"))
             and (checkbox_state[0] == "unchecked")
@@ -364,6 +373,7 @@ git: https://github.com/ruufly/KeepOpen.git""",
         self.root.deiconify()
         self.root.lift()
         self.root.focus_force()
+        self.flushTree()
 
     def hide_to_tray(self):
         self.root.withdraw()

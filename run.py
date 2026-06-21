@@ -3,6 +3,8 @@ import os, sys
 import json
 import psutil
 from plyer import notification
+import subprocess
+import ctypes
 
 
 def is_process_running(process_name):
@@ -40,8 +42,8 @@ def remove_from_startup(name):
 
 
 def getpath():
-    # return os.path.realpath(sys.executable)
-    return os.path.abspath(__file__)
+    return os.path.realpath(sys.executable)
+    # return os.path.abspath(__file__)
 
 
 def getdir(dir):
@@ -83,6 +85,11 @@ if is_process_running("keepopen_main_uac.exe") or is_process_running(
     )
 else:
     if setting["Administer"]:
-        os.system(getdir("keepopen_main_uac.exe"))
+        if ctypes.windll.shell32.IsUserAnAdmin():
+            subprocess.run([getdir("keepopen_main_uac.exe")])
+        else:
+            ctypes.windll.shell32.ShellExecuteW(
+                None, "runas", sys.executable, " ".join(sys.argv), None, 1
+            )
     else:
-        os.system(getdir("keepopen_main.exe"))
+        subprocess.run([getdir("keepopen_main.exe")])
