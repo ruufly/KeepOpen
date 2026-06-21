@@ -21,7 +21,7 @@ StringFileInfo(
     StringStruct(u'FileVersion', u'v1.0'), # 没见哪里显示
     StringStruct(u'InternalName', u'SVN'),
     StringStruct(u'LegalCopyright', u'copyright 2026 distjr_'), #版权，会显示在 详细信息-版权
-    StringStruct(u'OriginalFilename', u'main.py'), #原始文件名，会显示在 详细信息-原始文件名
+    StringStruct(u'OriginalFilename', u'main.exe'), #原始文件名，会显示在 详细信息-原始文件名
     StringStruct(u'ProductName', u'KeepOpen'),      #产品名称，会显示在 详细信息-产品名称
     StringStruct(u'ProductVersion', u'v1.0')])    #产品版本，会显示在 详细信息-产品版本
   ]),
