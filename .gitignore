@@ -1,0 +1,4 @@
+*.log
+service/test.py
+window.py
+test.py
