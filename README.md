@@ -1,3 +1,5 @@
+![](https://ruufly.github.io/medias/keepopen.png)
+
 # KeepOpen
 
 [个人网站](https://ruufly.github.io/) | [Github 仓库](https://github.com/ruufly/KeepOpen) | [开源许可证](https://github.com/ruufly/KeepOpen/blob/main/LICENSE) | [发行版下载](https://github.com/ruufly/KeepOpen/releases)
